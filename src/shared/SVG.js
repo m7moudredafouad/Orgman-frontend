@@ -3,7 +3,7 @@ import SVGS from '../assets/all.svg';
 
 const SVG = (props) => {
 	return (
-		<svg>
+		<svg className={props.className}>
 			<use xlinkHref={`${SVGS}#icon-${props.name}`}></use>
 		</svg>
 	);

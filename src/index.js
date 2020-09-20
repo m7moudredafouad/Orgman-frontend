@@ -4,9 +4,13 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
+import { LoginProvider } from './shared/context/LoginContext';
+
 ReactDOM.render(
 	<React.StrictMode>
-		<App />
+		<LoginProvider>
+			<App />
+		</LoginProvider>
 	</React.StrictMode>,
 	document.getElementById('root')
 );

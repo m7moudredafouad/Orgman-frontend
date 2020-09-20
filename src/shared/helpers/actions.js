@@ -8,7 +8,7 @@ const Actions = () => {
 	const deleteSubTasks = (subTaskArray, id) => {
 		addToDeletes(id);
 		addToUpdates(id, undefined);
-		console.log('DELETE Task');
+		// console.log('DELETE Task');
 		return subTaskArray.filter((task) => task._id !== id);
 	};
 

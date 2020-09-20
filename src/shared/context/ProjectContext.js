@@ -141,26 +141,29 @@ export const ProjectProvider = (props) => {
 		dispatch({ type: 'LOADING', payload: { loading } });
 	};
 
-	const save = () => {
+	const save = (token, projectId) => {
+		if (!token) return;
+
 		dispatch({ type: 'LOADING', payload: { loading: true } });
 		let requests = [];
 		if (projectState.deletes.length > 0) {
-			requests.push(deleteRequest(projectState.deletes));
+			requests.push(deleteRequest(projectState.deletes, token, projectId));
 		}
 
 		if (Object.keys(projectState.updates).length > 0) {
-			requests.push(UpdateRequest(projectState.updates));
+			requests.push(UpdateRequest(projectState.updates, token, projectId));
 		}
 
 		if (Object.keys(projectState.creation).length > 0) {
 			const newTasks = convertCreation();
-			requests.push(CreateRequest(newTasks));
+			requests.push(CreateRequest(newTasks, token, projectId));
 		}
 
 		Promise.all(requests)
 			.then((data) => {
 				console.log(data);
-				dispatch({ type: 'LOADING', payload: { loading: false } });
+				window.location.reload();
+				// dispatch({ type: 'LOADING', payload: { loading: false } });
 			})
 			.catch((err) => {
 				console.log(err);

@@ -8,8 +8,9 @@ const ModalMsg = (props) => {
 				<div className="modal__header">{props.header}</div>
 				<div className="modal__body">{props.msg}</div>
 				<div className="modal__footer">
-					<button className="btn btn-red btn-sm">Cancel</button>
-					<button className="btn btn-dark btn-sm">Create</button>
+					<button className="btn btn-dark btn-sm" onClick={props.onClose}>
+						Go Home
+					</button>
 				</div>
 			</div>
 		</div>
@@ -33,29 +34,41 @@ const ModalFrom = (props) => {
 	const content = (
 		<div className="modal">
 			<div className="modal__container">
-				<div className="modal__header">{props.header}</div>
+				<div className="modal__header">
+					<p>{props.header}</p>
+					<button className="btn modal__header-close" onClick={props.onClose}>
+						x
+					</button>
+				</div>
 				<div className="modal__body">
-					<form className="form">
-						<input
-							type="checkbox"
-							checked={doneState}
-							onChange={(e) => changeDone(e.target.checked)}
-						/>
-						<input
-							type="text"
-							className="form__input"
-							placeholder="Title"
-							value={titleState}
-							onChange={(e) => changeTitle(e.target.value)}
-						/>
+					<form
+						className="form"
+						onSubmit={(e) => {
+							e.preventDefault();
+							props.onSave(titleState, doneState);
+						}}
+					>
+						<div className="form__group">
+							<input
+								type="text"
+								className="form__input form__input-big"
+								placeholder="Title"
+								value={titleState}
+								autoFocus={true}
+								onChange={(e) => changeTitle(e.target.value)}
+							/>
+							<input
+								type="checkbox"
+								className="form__checkbox"
+								checked={doneState}
+								onChange={(e) => changeDone(e.target.checked)}
+							/>
+						</div>
 					</form>
 				</div>
 				<div className="modal__footer">
-					<button className="btn btn-red btn-sm" onClick={props.onClose}>
-						Cancel
-					</button>
 					<button
-						className="btn btn-dark btn-sm"
+						className="btn btn-dark"
 						onClick={() => props.onSave(titleState, doneState)}
 					>
 						Save

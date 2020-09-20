@@ -1,35 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-const Sidebar = () => {
-	const [projectsState, setProjectsState] = useState([]);
-
-	useEffect(() => {
-		getAllProjects();
-	}, []);
-
-	const getAllProjects = () => {
-		fetch(`${process.env.REACT_APP_API_URL}/projects`)
-			.then((res) => {
-				return res.json();
-			})
-			.then((data) => {
-				console.log('[ALL PROJECTS REQUEST] Success: ', data.success);
-				if (!data.success) {
-					throw new Error(data.message);
-				}
-				setProjectsState(data.tasks);
-			})
-			.catch((err) => {
-				console.log(err);
-			});
-	};
-
+const Projects = ({ projects }) => {
 	const renderProjects = () => {
-		if (projectsState.length <= 0) return null;
-		return projectsState.map((project) => {
+		if (projects.length <= 0) return null;
+		return projects.map((project) => {
 			return (
 				<a
-					href={`./${project._id}`}
+					href={`/${project._id}`}
 					key={project._id}
 					className="projects__middle-list--item"
 				>
@@ -46,4 +23,4 @@ const Sidebar = () => {
 	);
 };
 
-export default Sidebar;
+export default Projects;

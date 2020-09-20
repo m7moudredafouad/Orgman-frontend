@@ -1,6 +1,8 @@
 import React, { Fragment, useContext, useState } from 'react';
 
 // Import Helpers
+import { LoginContext } from '../../shared/context/LoginContext';
+
 import { ProjectContext } from '../../shared/context/ProjectContext';
 
 // Import Components
@@ -12,6 +14,7 @@ import Modal from '../../shared/Modal/Modal';
 const Tasks = ({
 	id,
 	title,
+	projectId,
 	done,
 	subTasks,
 	prevNodes,
@@ -19,6 +22,7 @@ const Tasks = ({
 	deleteMeFromParent,
 }) => {
 	// Context
+	const { token } = useContext(LoginContext);
 	const { addToUpdates, addToCreates } = useContext(ProjectContext);
 	const [deleteSubTasks] = Actions();
 
@@ -28,45 +32,58 @@ const Tasks = ({
 	const [subTasksState, setSubTasksState] = useState(subTasks || []);
 
 	// Other States
+	const [loadingSubTasks, setLoadingSubTasks] = useState(false);
 	const [editModalState, setEditModalState] = useState(false);
 	const [createModalState, setCreateModalState] = useState(false);
 	const [showSubTasks, setShowSubTasks] = useState(false);
+	const [errorState, setErrorState] = useState(null);
 
 	const getSubTasks = (otherTasks = []) => {
 		if (isNew || (subTasksState && subTasksState.length > 0)) {
 			return setShowSubTasks((prevState) => !prevState);
 		}
 
-		fetch(`${process.env.REACT_APP_API_URL}/tasks/${id}`)
+		setLoadingSubTasks(true);
+		fetch(
+			`${process.env.REACT_APP_API_URL}/projects/${projectId}/tasks/${id}`,
+			{
+				headers: {
+					Authorization: token,
+				},
+			}
+		)
 			.then((res) => {
 				return res.json();
 			})
 			.then((data) => {
-				console.log('[SUBTASKS REQUEST]', data);
+				// console.log('[SUBTASKS REQUEST]', data);
 				if (!data.success) {
-					console.log('Task Not Found');
+					return;
+					// console.log('Task Not Found');
 				}
 				otherTasks.length > 0
 					? setSubTasksState([...data.task.subTasks, ...otherTasks])
 					: setSubTasksState(data.task.subTasks);
 
 				setShowSubTasks(true);
+				setLoadingSubTasks(false);
 			})
 			.catch((err) => {
-				console.log(err);
+				setErrorState(err);
 			});
+	};
+	const removeError = () => {
+		setErrorState(null);
+		window.location.replace('/');
 	};
 
 	// Creating Functions
-	const showCreateModal = () => {
-		setCreateModalState(true);
-	};
-
-	const hideCreateModal = () => {
-		setCreateModalState(false);
-	};
-
 	const createTask = (title, done) => {
+		if (!title) {
+			setCreateModalState(false);
+			return;
+		}
+
 		let newTask = {
 			_id: new Date().getTime(),
 			done,
@@ -82,25 +99,26 @@ const Tasks = ({
 		}
 
 		addToCreates(id, newTask, isNew);
-		hideCreateModal();
+		setCreateModalState(false);
 	};
 
 	// Editing Functions
-	const showEditModal = () => {
-		setEditModalState(true);
-	};
-
-	const hideEditModal = () => {
-		setEditModalState(false);
+	const EditModalVisibility = (state) => {
+		setEditModalState(state);
 	};
 
 	const SaveEdits = (title, done) => {
 		// Save the new updates to the context with the id
-		console.log(title, done);
+		if (!title || (titleState === title && doneState === done)) {
+			EditModalVisibility(false);
+			return;
+		}
+
+		// console.log(title, done);
 		setTitleState(title);
 		setDoneState(done);
 		addToUpdates(id, { title, done }, isNew);
-		hideEditModal();
+		EditModalVisibility(false);
 	};
 
 	// Deleting Functions
@@ -110,13 +128,22 @@ const Tasks = ({
 
 	return (
 		<Fragment>
+			{errorState ? (
+				<Modal
+					type="msg"
+					header="Error"
+					msg={errorState}
+					onClose={removeError}
+				/>
+			) : null}
+
 			{createModalState && (
 				<Modal
 					type="form"
 					header="Create Task"
 					value=""
 					checked={false}
-					onClose={hideCreateModal}
+					onClose={() => setCreateModalState(false)}
 					onSave={createTask}
 				/>
 			)}
@@ -127,7 +154,7 @@ const Tasks = ({
 					header={`Edit ${titleState}`}
 					value={titleState}
 					checked={doneState}
-					onClose={hideEditModal}
+					onClose={() => EditModalVisibility(false)}
 					onSave={SaveEdits}
 				/>
 			)}
@@ -151,17 +178,28 @@ const Tasks = ({
 							</button>
 						)}
 
-						<button className="btn p-0" onClick={showEditModal}>
+						<button
+							className="btn p-0"
+							onClick={() => EditModalVisibility(true)}
+						>
 							<SVG name="edit" />
 						</button>
 
 						{prevNodes >= 4 ? null : (
 							<Fragment>
-								<button className="btn p-0" onClick={showCreateModal}>
+								<button
+									className="btn p-0"
+									onClick={() => setCreateModalState(true)}
+								>
 									<SVG name="plus" />
 								</button>
 
-								{showSubTasks && subTasksState.length <= 0 ? null : (
+								{showSubTasks &&
+								subTasksState.length <= 0 ? null : loadingSubTasks ? (
+									<button className="btn p-0">
+										<SVG name="spinner" className="spin" />
+									</button>
+								) : (
 									<button className="btn p-0" onClick={getSubTasks}>
 										<SVG name={showSubTasks ? 'up' : 'down'} />
 									</button>
@@ -177,6 +215,7 @@ const Tasks = ({
 						show={showSubTasks}
 						prevNodes={prevNodes + 1}
 						deleteMeFromParent={deleteChildFromSubTasks}
+						projectId={projectId}
 					/>
 				)}
 			</div>

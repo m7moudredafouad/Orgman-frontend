@@ -1,9 +1,10 @@
-export const deleteRequest = (ids) => {
+export const deleteRequest = (ids, token, projectId) => {
 	return new Promise((resolve, reject) => {
-		fetch(`${process.env.REACT_APP_API_URL}/tasks`, {
+		fetch(`${process.env.REACT_APP_API_URL}/projects/${projectId}/tasks`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
+				Authorization: token,
 			},
 			body: JSON.stringify({
 				deleteThisIds: [...ids],
@@ -21,12 +22,13 @@ export const deleteRequest = (ids) => {
 	});
 };
 
-export const CreateRequest = (newTasks) => {
+export const CreateRequest = (newTasks, token, projectId) => {
 	return new Promise((resolve, reject) => {
-		fetch(`${process.env.REACT_APP_API_URL}/tasks`, {
+		fetch(`${process.env.REACT_APP_API_URL}/projects/${projectId}/tasks`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
+				Authorization: token,
 			},
 			body: JSON.stringify({ newTasks }),
 		})
@@ -42,12 +44,13 @@ export const CreateRequest = (newTasks) => {
 	});
 };
 
-export const UpdateRequest = (updateThisIds) => {
+export const UpdateRequest = (updateThisIds, token, projectId) => {
 	return new Promise((resolve, reject) => {
-		fetch(`${process.env.REACT_APP_API_URL}/tasks`, {
+		fetch(`${process.env.REACT_APP_API_URL}/projects/${projectId}/tasks`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json',
+				Authorization: token,
 			},
 			body: JSON.stringify({ updateThisIds }),
 		})

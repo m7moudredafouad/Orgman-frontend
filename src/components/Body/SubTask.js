@@ -2,7 +2,13 @@ import React from 'react';
 
 import Task from './Task';
 
-const SubTasks = ({ tasks, show, prevNodes, deleteMeFromParent }) => {
+const SubTasks = ({
+	tasks,
+	show,
+	prevNodes,
+	deleteMeFromParent,
+	projectId,
+}) => {
 	const style = {
 		hide: {
 			display: 'none',
@@ -17,6 +23,7 @@ const SubTasks = ({ tasks, show, prevNodes, deleteMeFromParent }) => {
 				<Task
 					key={subTask._id}
 					id={subTask._id}
+					projectId={projectId}
 					prevNodes={prevNodes}
 					title={subTask.title}
 					done={subTask.done}

@@ -2,6 +2,8 @@ import React, { Fragment, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 // Import Helpers
+import { LoginContext } from '../../shared/context/LoginContext';
+
 import { ProjectContext } from '../../shared/context/ProjectContext';
 import { deleteRequest } from '../../shared/helpers/request';
 import Actions from '../../shared/helpers/actions';
@@ -16,6 +18,7 @@ import Task from './Task';
 const Project = () => {
 	// Context
 	const { projectId } = useParams();
+	const { token } = useContext(LoginContext);
 	const { loading, setLoading, addToUpdates, addToCreates, save } = useContext(
 		ProjectContext
 	);
@@ -30,22 +33,29 @@ const Project = () => {
 	const [deleteSubTasks] = Actions();
 	const [editModalState, setEditModalState] = useState(false);
 	const [createModalState, setCreateModalState] = useState(false);
+	const [errorState, setErrorState] = useState(null);
 
 	// For The every change of id
 	useEffect(() => {
-		getProjectTasks(projectId);
-	}, [projectId]);
+		getProjectTasks(projectId, token);
+	}, [projectId, token]);
 
 	// Get The Project
-	const getProjectTasks = (id) => {
-		fetch(`${process.env.REACT_APP_API_URL}/projects/${id}`)
+	const getProjectTasks = (id, token) => {
+		fetch(`${process.env.REACT_APP_API_URL}/projects/${id}`, {
+			headers: {
+				Authorization: token,
+			},
+		})
 			.then((res) => {
 				return res.json();
 			})
 			.then((data) => {
-				console.log('[PROJECT REQUEST] Success: ', data.success);
+				// console.log('[PROJECT REQUEST] Success: ', data.success);
 				if (!data.success) {
-					throw new Error(data.message);
+					return setErrorState(data.message);
+
+					// throw new Error(data.message);
 				}
 				setTitleState(data.task.title);
 				setIdState(data.task._id);
@@ -53,20 +63,23 @@ const Project = () => {
 				setSubTasksState(data.task.subTasks);
 			})
 			.catch((err) => {
-				console.log(err);
+				setErrorState(err);
+				// console.log(err);
 			});
 	};
 
+	const removeError = () => {
+		setErrorState(null);
+		window.location.replace('/');
+	};
+
 	// Creating Functions
-	const showCreateModal = () => {
-		setCreateModalState(true);
-	};
-
-	const hideCreateModal = () => {
-		setCreateModalState(false);
-	};
-
 	const createTask = (title, done) => {
+		if (!title) {
+			setCreateModalState(false);
+			return;
+		}
+
 		let newTask = {
 			_id: new Date().getTime(),
 			done,
@@ -78,25 +91,25 @@ const Project = () => {
 		setSubTasksState([...subTasksState, newTask]);
 
 		addToCreates(idState, newTask, false);
-		hideCreateModal();
+		setCreateModalState(false);
 	};
 
 	// Editing Functions
-	const showEditModal = () => {
-		setEditModalState(true);
-	};
-
-	const hideEditModal = () => {
-		setEditModalState(false);
+	const EditModalVisibility = (state) => {
+		setEditModalState(state);
 	};
 
 	const SaveEdits = (title, done) => {
 		// Save the new updates to the context with the id
-		console.log(title, done);
+		// console.log(title, done);
+		if (!title || (titleState === title && doneState === done)) {
+			EditModalVisibility(false);
+			return;
+		}
 		setTitleState(title);
 		setDoneState(done);
 		addToUpdates(idState, { title, done });
-		hideEditModal();
+		EditModalVisibility(false);
 	};
 
 	// Delete Functions
@@ -106,7 +119,7 @@ const Project = () => {
 
 	const deleteProject = () => {
 		setLoading(true);
-		deleteRequest([projectId])
+		deleteRequest([projectId], token, projectId)
 			.then((data) => {
 				if (data.success) {
 					setLoading(false);
@@ -115,7 +128,8 @@ const Project = () => {
 				throw new Error('Project deletion error');
 			})
 			.catch((err) => {
-				console.log(err);
+				setErrorState(err);
+				// console.log(err);
 			});
 	};
 
@@ -127,6 +141,7 @@ const Project = () => {
 			return (
 				<Task
 					key={subTask._id}
+					projectId={idState}
 					id={subTask._id}
 					title={subTask.title}
 					done={subTask.done}
@@ -143,13 +158,22 @@ const Project = () => {
 		<Fragment>
 			{loading && <Spinner />}
 
+			{errorState ? (
+				<Modal
+					type="msg"
+					header="Error"
+					msg={errorState}
+					onClose={removeError}
+				/>
+			) : null}
+
 			{createModalState && (
 				<Modal
 					type="form"
 					header="Create Task"
 					value=""
 					checked={false}
-					onClose={hideCreateModal}
+					onClose={() => setCreateModalState(false)}
 					onSave={createTask}
 				/>
 			)}
@@ -160,7 +184,7 @@ const Project = () => {
 					header={`Edit ${titleState}`}
 					value={titleState}
 					checked={doneState}
-					onClose={hideEditModal}
+					onClose={() => EditModalVisibility(false)}
 					onSave={SaveEdits}
 				/>
 			)}
@@ -171,13 +195,22 @@ const Project = () => {
 						<button className="btn p-0 pl-1" onClick={deleteProject}>
 							<SVG name="trash" />
 						</button>
-						<button className="btn p-0 pl-1" onClick={showEditModal}>
+						<button
+							className="btn p-0 pl-1"
+							onClick={() => EditModalVisibility(true)}
+						>
 							<SVG name="edit" />
 						</button>
-						<button className="btn p-0 pl-1" onClick={save}>
+						<button
+							className="btn p-0 pl-1"
+							onClick={() => save(token, idState)}
+						>
 							<SVG name="save" />
 						</button>
-						<button className="btn p-0 pl-1" onClick={showCreateModal}>
+						<button
+							className="btn p-0 pl-1"
+							onClick={() => setCreateModalState(true)}
+						>
 							<SVG name="plus" />
 						</button>
 					</div>
