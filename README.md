@@ -1,3 +1,3 @@
 # Orgman Frontend 🔥
 
-REACT_APP_API_URL => A API Url to backend
+REACT_APP_API_URL => An API Url to backend
