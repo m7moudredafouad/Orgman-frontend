@@ -32,7 +32,7 @@ const Sidebar = () => {
 			.then((data) => {
 				// console.log('[ALL PROJECTS REQUEST] Success: ', data.success);
 				if (!data.success) {
-					throw new Error(data.message);
+					return logout();
 				}
 				setProjectsState(data.tasks);
 				setCreateProjectLoading(false);
@@ -54,6 +54,9 @@ const Sidebar = () => {
 					return res.json();
 				})
 				.then((data) => {
+					if (!data.success) {
+						return logout();
+					}
 					resolve(data);
 					setCreateProjectLoading(false);
 				})
@@ -102,7 +105,7 @@ const Sidebar = () => {
 				<div className="projects__top">
 					<div className="projects__top-logo">
 						<a href="/">
-							Pro<span>man</span>
+							Org<span>man</span>
 						</a>
 					</div>
 					<button

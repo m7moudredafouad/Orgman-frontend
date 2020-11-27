@@ -7,7 +7,7 @@ const MainShow = () => {
 		<div className="main__show">
 			<SVG name="tasks" />
 			<div className="main__show-msg">
-				Manage your projects easily with Proman
+				Manage your projects easily with Orgman
 			</div>
 		</div>
 	);

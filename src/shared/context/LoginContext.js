@@ -7,12 +7,19 @@ export const LoginProvider = (props) => {
 	const [tokenState, setTokenState] = useState(null);
 	const [expiresState, setExpiresState] = useState(null);
 	const [loginError, setLoginError] = useState(null);
+	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		let savedToken = localStorage.getItem('token');
 		let savedExpires = localStorage.getItem('expires');
-		if (savedToken && savedExpires && savedExpires > new Date().getTime()) {
+		if (
+			savedToken &&
+			savedExpires &&
+			parseInt(savedExpires) > new Date().getTime()
+		) {
 			setTokenState(localStorage.getItem('token'));
+		} else if (parseInt(savedExpires) < new Date().getTime()) {
+			return logout();
 		}
 	}, []);
 
@@ -26,6 +33,7 @@ export const LoginProvider = (props) => {
 	}, [tokenState, expiresState]);
 
 	const login = (email, password) => {
+		setLoading(true);
 		fetch(`${process.env.REACT_APP_API_URL}/users/login`, {
 			method: 'POST',
 			headers: {
@@ -49,6 +57,7 @@ export const LoginProvider = (props) => {
 				localStorage.setItem('token', data.token);
 				localStorage.setItem('expires', data.expires);
 				// console.log(data.token);
+				setLoading(false);
 			})
 			.catch((err) => {
 				setLoginError(err);
@@ -57,6 +66,7 @@ export const LoginProvider = (props) => {
 	};
 
 	const signup = (name, email, password, passwordConfirm) => {
+		setLoading(true);
 		fetch(`${process.env.REACT_APP_API_URL}/users/signup`, {
 			method: 'POST',
 			headers: {
@@ -82,6 +92,7 @@ export const LoginProvider = (props) => {
 				localStorage.setItem('token', data.token);
 				localStorage.setItem('expires', data.expires);
 				// console.log(data.token);
+				setLoading(false);
 			})
 			.catch((err) => {
 				setLoginError(err);
@@ -100,6 +111,7 @@ export const LoginProvider = (props) => {
 		<LoginContext.Provider
 			value={{
 				loginError,
+				loading,
 				isLoggedIn: !!tokenState,
 				token: tokenState,
 				login,

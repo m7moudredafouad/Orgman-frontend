@@ -1,9 +1,10 @@
-import React, { useContext, useReducer } from 'react';
+import React, { Fragment, useContext, useReducer } from 'react';
 
 import { LoginContext } from '../../shared/context/LoginContext';
 
 import Input from '../../shared/Input/Input';
 import Validator from '../../shared/utils/Validator';
+import Spinner from '../../shared/Modal/Spinner';
 
 const checkFormIsValid = (inputs) => {
 	let isValid = true;
@@ -59,7 +60,7 @@ const reducer = (state, action) => {
 };
 
 const Register = () => {
-	const { loginError, login, signup } = useContext(LoginContext);
+	const { loginError, loading, login, signup } = useContext(LoginContext);
 
 	const initialState = {
 		inputs: {
@@ -153,51 +154,54 @@ const Register = () => {
 	};
 
 	return (
-		<div className="main__register">
-			<h2 className="main__register-h2">
-				{registerState.isLogin
-					? 'Login to your proman account'
-					: 'Signup with proman'}
-			</h2>
-			<form className="form" onSubmit={(e) => onSubmit(e)}>
-				{renderInputs()}
+		<Fragment>
+			{loading && <Spinner />}
+			<div className="main__register">
+				<h2 className="main__register-h2">
+					{registerState.isLogin
+						? 'Login to your orgman account'
+						: 'Signup with orgman'}
+				</h2>
+				<form className="form" onSubmit={(e) => onSubmit(e)}>
+					{renderInputs()}
 
-				<div className="form__btns">
-					<button
-						type="submit"
-						className={`btn ${
-							registerState.formIsValid ? 'btn-dark' : 'btn-disabled'
-						}`}
-						disabled={!registerState.formIsValid}
-					>
-						{registerState.isLogin ? 'Login' : 'Signup'}
-					</button>
+					<div className="form__btns">
+						<button
+							type="submit"
+							className={`btn ${
+								registerState.formIsValid ? 'btn-dark' : 'btn-disabled'
+							}`}
+							disabled={!registerState.formIsValid}
+						>
+							{registerState.isLogin ? 'Login' : 'Signup'}
+						</button>
 
-					{registerState.isLogin ? (
-						<button
-							className="btn main__register-switch"
-							type="button"
-							onClick={() => changeIsLogin(false)}
-						>
-							No account yet?
-						</button>
-					) : (
-						<button
-							className="btn main__register-switch"
-							type="button"
-							onClick={() => changeIsLogin(true)}
-						>
-							Login instead?
-						</button>
-					)}
-				</div>
-				{loginError ? (
-					<ul className="form__label-error">
-						<li>{loginError}</li>
-					</ul>
-				) : null}
-			</form>
-		</div>
+						{registerState.isLogin ? (
+							<button
+								className="btn main__register-switch"
+								type="button"
+								onClick={() => changeIsLogin(false)}
+							>
+								No account yet?
+							</button>
+						) : (
+							<button
+								className="btn main__register-switch"
+								type="button"
+								onClick={() => changeIsLogin(true)}
+							>
+								Login instead?
+							</button>
+						)}
+					</div>
+					{loginError ? (
+						<ul className="form__label-error">
+							<li>{loginError}</li>
+						</ul>
+					) : null}
+				</form>
+			</div>
+		</Fragment>
 	);
 };
 
